@@ -1,0 +1,40 @@
+gantt
+    title Messenger — Project Schedule (Oct 5 – Nov 2, 2026)
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+
+    section Project Definition (all due Oct 12)
+    Repository, structure, .gitignore   :repo, 2026-10-05, 1d
+    Statement of Work (IA-02)           :sow, 2026-10-05, 7d
+    Requirements (IA-03)                :req, 2026-10-05, 5d
+    Diagrams and analysis (IA-04)       :ana, after req, 2d
+    Ethics reflection (IA-05)           :eth, after req, 2d
+    M1 IA-02 to IA-05 pushed            :milestone, m1, 2026-10-12, 0d
+
+    section Design
+    Design document                     :des, after m1, 2d
+    M2 Design baseline                  :milestone, m2, after des, 0d
+    Cross-artifact consistency revisions:rev, after m1, 17d
+
+    section Development (one developer, one slice at a time)
+    Accounts, storage, basic interface  :auth, after des, 3d
+    Private messaging                   :dm, after auth, 3d
+    Group messaging                     :grp, after dm, 2d
+    Real-time delivery                  :rt, after grp, 4d
+    M3 Feature freeze                   :milestone, m3, after rt, 0d
+
+    section Integration and Verification
+    Integration                         :int, after rt, 1d
+    Verification (run test plan)        :ver, after int, 2d
+    Defect correction                   :fix, after ver, 1d
+    Regression re-verification          :reg, after fix, 1d
+    Final review and release candidate  :rc, after reg, 1d
+    M4 Planned final delivery           :milestone, m4, after rc, 0d
+
+    section Supporting Documentation
+    Test plan                           :tp, after dm, 3d
+    README (setup and usage)            :docs, after m3, 2d
+
+    section Buffer
+    Contingency                         :crit, buf, after rc, 1d
+    M5 Client deadline                  :milestone, m5, 2026-11-02, 0d
