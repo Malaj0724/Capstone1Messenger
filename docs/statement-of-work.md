@@ -22,7 +22,7 @@ This messenger application will be a communication app that allows for users to 
 |-------------|-----------------------------|
 | Client | Defines the need, reviews deliverables, decides open questions. |
 | End users | Use private and group messaging; their needs drive usability and reliability requirements. |
-| Group owners/creators | A subset of users who create and manage groups; drive group-management requirements. |
+| Group owners/creators | A subset of users who create groups. Ownership is recorded but grants no additional capabilities in this release. |
 | Developer | Plans, designs, builds, tests, and delivers the system. |
 | Course instructor / reviewers | Evaluate the repository, documents, and delivered product against the course criteria. |
 | Future maintainers | May extend the system; depend on documentation and clear structure. |
@@ -40,18 +40,20 @@ This messenger application will be a communication app that allows for users to 
 **Private messaging**
 - Start a one-to-one conversation with any other registered user.
 - Send and receive text messages; messages persist and conversation history is viewable.
-- Near-real-time delivery to recipients who are online; delivery on next login otherwise.
+- Delivery within 5 seconds to recipients who are online; delivery on next login otherwise.
 
 **Group messaging**
-- Create a group with a name; creator becomes group owner.
-- Members can leave.
+- Create a group by naming it and selecting its members (2–20 members including the creator); the creator becomes group owner, which grants no additional capabilities.
+- Members can leave; membership changes only by leaving.
 - Send and receive text messages visible to all current members; persistent history.
 
 **Supporting functionality**
-- User list/search by username.
+- Search for users by username prefix.
 - A client user interface (web-based, see Assumption A2) for all of the above.
 - Persistent storage of users, conversations, memberships, and messages.
-- Input validation and basic access control (only participants can read a conversation).
+- Input validation and basic access control (only participants can read a conversation), plus a per-user message rate limit.
+- A "message not sent" result for the sender if a message cannot be stored.
+- A notice on the registration page that messages are stored without end-to-end encryption and can be read by the operator.
 
 **Project work**
 - Requirements, diagrams and analysis, and an ethics reflection for Messenger (the four graded Messenger artifacts), plus design documentation, test plan and results, setup/user guide, and the working software.
@@ -63,7 +65,7 @@ This messenger application will be a communication app that allows for users to 
 - Servers/guilds with multiple channels, roles, and fine-grained permissions (groups are single flat conversations).
 - Message editing, deletion, reactions, threading, and search within messages.
 - Bots, integrations, or a public API for third parties.
-- End-to-end encryption.
+- End-to-end encryption. Transport encryption (HTTPS/TLS) is not required for the local demonstration, pending client confirmation (requirements OQ-03).
 - Push notifications, native mobile or desktop apps.
 - Moderation tooling, reporting, and administrative dashboards.
 - Third-party sign-in (OAuth), password reset by email, email verification.
@@ -73,7 +75,7 @@ This messenger application will be a communication app that allows for users to 
 
 Items out of scope may be recorded as possible future work but will not be built under this agreement.
 
-**Scope revision.** Requirements, data-flow/sequence analysis, and the ethics reflection may expose missing decisions (for example, an unspecified failure behavior or a needed safety requirement). If so, this SOW is revised and the change is visible in the Git history. Moderation tooling remains out of scope unless the ethics reflection identifies a minimal safeguard that must be added.
+**Scope revision.** Requirements, data-flow/sequence analysis, and the ethics reflection may expose missing decisions (for example, an unspecified failure behavior or a needed safety requirement). If so, this SOW is revised and the change is visible in the Git history. Moderation tooling remains out of scope unless the ethics reflection identifies a minimal safeguard that must be added. So far, the analysis added storage-failure behavior (NFR-11), and the ethics reflection added a message rate limit (NFR-12) and the registration notice (FR-32). Blocking, reporting, and moderation remain out of scope.
 
 ---
 
@@ -89,7 +91,7 @@ Items out of scope may be recorded as possible future work but will not be built
 | D6 | Design document (components, data model, interfaces) | `docs/design.md` |
 | D7 | Messenger application source code, including the data storage schema and its initialization | Source directories in repository |
 | D8 | Test plan, automated test suite, and test report | `docs/test-plan.md`, `tests/`, `docs/test-report.md` |
-| D9 | Setup and user guide | `README.md` |
+| D9 | Setup and user guide, including a not-an-emergency-service notice and the operator's data-handling policy | `README.md` |
 | D10 | Final release | Git tag `v1.0` on the main branch |
 | D11 | Repository hygiene: root `.gitignore`, no credentials or temporary files | Repository root |
 
@@ -101,10 +103,10 @@ Items out of scope may be recorded as possible future work but will not be built
 |----|------------|-----------------|
 | A1 | The project is executed by a single developer. | Schedule and scope would need rebalancing. |
 | A2 | A web-based client is acceptable to the client. | A different client type changes the UI workstream. |
-| A3 | Plain text messages with a reasonable length limit are sufficient. | Richer content expands scope. |
+| A3 | Plain text messages of up to 2000 characters are sufficient. | Richer content expands scope. |
 | A4 | Expected load is small (tens of concurrent users, not thousands). | Scaling work would be added. |
 | A5 | Registration is open (any person may create an account); no approval workflow. | Admin approval would add scope. |
-| A6 | Groups are flat conversations with an owner and members; no roles beyond owner/member. | Roles/permissions would add scope. |
+| A6 | Groups are flat conversations with an owner and members; the owner has no capabilities beyond those of a member. | Roles/permissions would add scope. |
 | A7 | The client is available for clarification before October 12. | Decisions default to the documented assumption; later answers are handled by revision. |
 | A8 | Demonstration/delivery will run on the developer's chosen environment, with local setup instructions. | Hosting requirements would add work. |
 
@@ -221,12 +223,14 @@ Acceptance is based on observable evidence reviewed in the repository and by run
 ### 7.1 Functional acceptance criteria
 1. A new user can register, log out, and log in again; an incorrect password is rejected.
 2. Passwords are not stored in plaintext (verified by inspecting storage).
-3. User A sends a private message to user B; B sees it within about 5 seconds without refreshing if online, or at next login if not.
+3. User A sends a private message to user B; B sees it within 5 seconds without refreshing if online, or at next login if not.
 4. Private conversation history persists across logout and restart.
 5. A user cannot read a private conversation they are not part of.
-6. A user creates a group with chosen members, and all members see the same messages (online members within about 5 seconds, without refreshing); a member who leaves sees no new messages.
+6. A user creates a group with chosen members, and all members see the same messages (online members within 5 seconds, without refreshing); a member who leaves sees no new messages.
 7. Group history persists across restart.
-8. Invalid input (empty message, over-length message, duplicate username) is rejected with a clear message.
+8. Invalid input (empty message, over-length message, duplicate username, or more than 30 messages from one user in 60 seconds) is rejected with a clear message.
+9. Searching by username prefix returns at most 20 matching usernames and never the searcher.
+10. A group needs a name and 1–19 other selected members; if the owner leaves, the remaining members keep using the group.
 
 ### 7.2 Completion rule
 The project is complete when D1–D11 exist in the repository, every functional acceptance criterion above has a recorded passing result in the test report, no critical or high-severity defects remain open, and the `v1.0` tag has been pushed no later than November 2, 2026. Any criterion not met must be documented as a known limitation in the test report.

@@ -6,7 +6,7 @@
 This document states what Messenger shall do and how well it shall do it, precisely enough to be reviewed, designed, and tested. It describes the same project defined in the SOW: registered users communicate through private one-to-one conversations and flat group conversations. 
 
 ### 1.2 Identifiers and references
-Requirements and related items have stable identifiers that are never reused: `FR-nn` (functional requirement), `NFR-nn` (non-functional requirement), `AC-nn` (acceptance criterion), `RA-nn` (assumption or engineering decision), `OQ-nn` (unresolved question), and `CF-nn` (conflict or ambiguity). Section 7 gives the source of every requirement using these references: `O1`–`O6` (objectives, SOW §1.2), `SOW §3.1 <heading>` (an in-scope capability), `STK <name>` (a stakeholder need, SOW §2), `A1`–`A8` (SOW assumptions), and `RA-nn` (a documented engineering decision).
+Requirements and related items have stable identifiers that are never reused: `FR-nn` (functional requirement), `NFR-nn` (non-functional requirement), `AC-nn` (acceptance criterion), `RA-nn` (assumption or engineering decision), `OQ-nn` (unresolved question), and `CF-nn` (conflict or ambiguity). Section 7 gives the source of every requirement using these references: `O1`–`O6` (objectives, SOW §1.2), `SOW §3.1 <heading>` (an in-scope capability), `STK <name>` (a stakeholder need, SOW §2), `A1`–`A8` (SOW assumptions), `RA-nn` (a documented engineering decision), and `AN F-n` or `ER §n` (a finding in `docs/analysis.md` or a section of `docs/ethics-reflection.md`).
 
 ## 2. System Context
 
@@ -38,7 +38,7 @@ Messenger has no required interaction with external services. It sends no email,
 
 | External element | Interaction |
 |------------------|-------------|
-| User's web browser | Hosts the client; the system supports current Chrome and Firefox (NFR-15). |
+| User's web browser | Hosts the client; the system supports current Chrome and Firefox (NFR-10). |
 | Host machine (OS, file system, network) | Runs the server and stores the data store. |
 
 ---
@@ -60,6 +60,7 @@ Every functional requirement has at least one acceptance criterion in Section 5 
 | FR-07 | If login credentials are incorrect, the system shall establish no session and shall display one generic message that does not reveal whether the username or the password was wrong. | AC-04 |
 | FR-08 | The system shall allow an authenticated user to log out, after which the ended session shall no longer grant access to any function. | AC-05 |
 | FR-09 | The system shall make every function other than registration and login available only to authenticated users. | AC-06 |
+| FR-32 | The system shall display on the registration page, before an account is created, a notice that messages are stored without end-to-end encryption and can be read by the operator. | AC-27 |
 
 ### 3.2 Finding users
 
@@ -111,36 +112,38 @@ Every functional requirement has at least one acceptance criterion in Section 5 
 
 | ID | Requirement | AC |
 |----|-------------|----|
-| NFR-01 | With 10 users logged in simultaneously, every message sent shall be displayed to all of its online recipients within 5 seconds of being sent. | AC-11, AC-25 |
-| NFR-02 | Opening a conversation that contains 100 stored messages shall display its messages within 3 seconds. | AC-25 |
-| NFR-03 | A user search shall return its results within 1 second with 100 registered users. | AC-25 |
-| NFR-04 | The system shall operate without errors or lost messages with at least 10 simultaneously logged-in users and 100 registered accounts. | AC-25 |
+| NFR-01 | With 10 users logged in simultaneously, every message sent shall be displayed to all of its online recipients within 5 seconds of being sent. | AC-11, AC-23 |
+| NFR-02 | Opening a conversation that contains 100 stored messages shall display its messages within 3 seconds. | AC-23 |
+| NFR-03 | A user search shall return its results within 1 second with 100 registered users. | AC-23 |
+| NFR-04 | The system shall operate without errors or lost messages with at least 10 simultaneously logged-in users and 100 registered accounts. | AC-23 |
 
 ### 4.2 Security
 
 | ID | Requirement | AC |
 |----|-------------|----|
 | NFR-05 | Password hashes shall be produced with a per-password random salt and an established, deliberately slow password-hashing algorithm, and the algorithm and its parameters shall be named in the design document. | AC-03 |
-| NFR-06 | No response of the system shall contain a password hash, or any information about another user beyond their username, or the content of any conversation in which the requester is not a participant or member. | AC-24 |
+| NFR-06 | No response of the system shall contain a password hash, or any information about another user beyond their username, or the content of any conversation in which the requester is not a participant or member. | AC-22 |
+| NFR-12 | The system shall accept at most 30 messages from any one user in any 60-second period, across all conversations. A further message in that period shall not be stored or delivered, and the sender shall be shown a message naming the limit. | AC-26 |
 
 ### 4.3 Reliability
 
 | ID | Requirement | AC |
 |----|-------------|----|
-| NFR-07 | Invalid input (any case covered by FR-04, FR-14, FR-22, or malformed requests) shall not crash the application or corrupt stored data, and each rejection shall name the specific rule violated. | AC-02, AC-10, AC-16 |
+| NFR-07 | Invalid input (any case covered by FR-04, FR-14, FR-22, NFR-12, or malformed requests) shall not crash the application or corrupt stored data, and each rejection shall name the specific rule violated. | AC-02, AC-10, AC-16, AC-26 |
+| NFR-11 | If the data store fails while a message is being stored, the system shall tell the sender that the message was not sent and shall deliver it to no one. A message shall be shown as sent, and delivered, only after it has been stored. | AC-25 |
 
 ### 4.4 Usability
 
 | ID | Requirement | AC |
 |----|-------------|----|
-| NFR-08 | Starting from the landing page, each of these tasks shall be completable in at most 6 user actions (a click, selection, or form submission): register; log in; open a private conversation with a known username; send a message; create a group; leave a group. | AC-26 |
-| NFR-09 | Error messages shall state what is wrong and how to correct it in plain language, and shall not expose internal details such as stack traces, file paths, or database errors. | AC-26 |
+| NFR-08 | Starting from the landing page, each of these tasks shall be completable in at most 6 user actions (a click, selection, or form submission): register; log in; open a private conversation with a known username; send a message; create a group; leave a group. | AC-24 |
+| NFR-09 | Error messages shall state what is wrong and how to correct it in plain language, and shall not expose internal details such as stack traces, file paths, or database errors. | AC-24 |
 
-### 4.5 Portability, verifiability, and constraints
+### 4.5 Portability
 
 | ID | Requirement | AC |
 |----|-------------|----|
-| NFR-10 | The client shall work in the current stable releases of Chrome and Firefox. | AC-26 |
+| NFR-10 | The client shall work in the current stable releases of Chrome and Firefox. | AC-24 |
 
 
 ---
@@ -173,8 +176,11 @@ Each criterion states how to observe that the requirements listed under **Verifi
 | AC-20 | FR-29 | The owner leaves a group that has two remaining members, who then exchange messages. | The group remains available to them; no privileges change. |
 | AC-21 | FR-31 | Create accounts, a private conversation, and a group with messages; stop and restart the application; log in. | All accounts can log in; the conversations, memberships, and all earlier messages are present. |
 | AC-22 | NFR-06 | Inspect all server responses during AC-07, AC-13, and AC-15 with a network tool. | No response contains a password hash, account data other than usernames, or messages of a conversation the requester is not in. |
-| AC-23 | NFR-01, 02, 03, 04 | With 10 simulated logged-in users and 100 registered accounts, have each user send messages in private conversations and groups for 5 minutes; separately open a conversation containing 100 messages; run a search. | Every message arrives within 5 seconds; none is lost and no error occurs; the 100-message conversation displays within 3 seconds; the search returns within 1 second. |
+| AC-23 | NFR-01, 02, 03, 04 | With 10 simulated logged-in users and 100 registered accounts, have each user send messages in private conversations and groups for 5 minutes, each sending no more than 30 messages per minute; separately open a conversation containing 100 messages; run a search. | Every message arrives within 5 seconds; none is lost and no error occurs; the 100-message conversation displays within 3 seconds; the search returns within 1 second. |
 | AC-24 | NFR-08, 09, 10 | (a) Count the user actions needed for each task listed in NFR-08; (b) provoke each validation error and read its message; (c) use the client in current Chrome and Firefox. | (a) Each task takes at most 6 actions; (b) each message is plain-language, says how to correct the problem, and shows no internal details; (c) all functions work in both browsers. |
+| AC-25 | NFR-11 | With A and B online, make the data store unavailable (for example, stop it or make it read-only) and have A send a message to B; then restore the store. | A is told the message was not sent, in plain language and without internal details; B receives nothing; the message is not in A's conversation, B's conversation, or the stored history. |
+| AC-26 | NFR-12; NFR-07 | A sends 30 messages within 60 seconds, then a 31st within the same 60 seconds, then another after the 60 seconds have passed. | The first 30 are accepted; the 31st is rejected with a message naming the limit and is not stored or delivered; the later message is accepted. |
+| AC-27 | FR-32 | Open the registration page without logging in. | Before submitting, the page shows a notice that messages are stored without end-to-end encryption and can be read by the operator. |
 
 ---
 
@@ -200,7 +206,8 @@ The SOW assumptions A1–A8 apply. Where the SOW or scenario is silent, the foll
 | RA-13 | Users use a desktop-size browser window; the interface is in English only. | NFR-08, NFR-10 |
 | RA-14 | The delivered system runs locally for demonstration and is not exposed to the public internet, so transport encryption is not required (see OQ-03). | NFR-05, NFR-06 |
 | RA-15 | Accounts cannot be deleted or renamed, and passwords cannot be changed or recovered. | FR-01 to FR-09 |
-| RA-16 | There is no moderation, blocking, reporting, or administrator role; all registered users have equal standing. | Scope |
+| RA-16 | There is no moderation, blocking, reporting, or administrator role, apart from the message rate limit (NFR-12); all registered users have equal standing. | Scope, NFR-12 |
+| RA-17 | A user is online when they have a valid session and the client open. (Found in the data flow analysis, AN F-1.) | FR-17, FR-18, FR-24, NFR-01 |
 
 ### 6.2 Unresolved questions for the client
 These are unanswered. The "default used" column records what this document assumes meanwhile; it is not a client answer.
@@ -216,9 +223,10 @@ These are unanswered. The "default used" column records what this document assum
 | OQ-07 | Is it acceptable that a user who forgets their password cannot recover the account? | Yes (RA-15) | FR-06 |
 | OQ-08 | Is it acceptable that abusive users cannot be blocked, reported, or moderated? | Yes (RA-16); examined further in the ethics reflection | Scope |
 | OQ-09 | Is it acceptable that any registered user can discover other usernames through search? | Yes, bounded by RA-07 | FR-10 |
+| OQ-10 | Do sessions survive an application restart, and may one user be logged in from more than one browser at once? (AN F-2) | None assumed; decided in the design document | FR-08, FR-09, FR-31 |
 
 ### 6.3 Conflicts and ambiguities in the SOW
-Writing precise requirements exposed these. Each is resolved here as shown, and the SOW should be revised to match.
+Writing precise requirements exposed these. Each is resolved here as shown, and the SOW has been revised to match (Section 8).
 
 | ID | Issue | Resolution in this document |
 |----|-------|-----------------------------|
@@ -247,14 +255,14 @@ Writing precise requirements exposed these. Each is resolved here as shown, and 
 | FR-07 | O1; RA-11 |
 | FR-08 | O1; SOW §3.1 Accounts |
 | FR-09 | O1; SOW §3.1 access control |
-| FR-10 | SOW §3.1 Supporting functionality ("user list/search by username"); RA-07 |
+| FR-10 | SOW §3.1 Supporting functionality ("search for users by username prefix"); RA-07 |
 | FR-11 | O2; SOW §3.1 Private messaging; RA-08 |
 | FR-12 | RA-08 |
 | FR-13 | O2, O3; SOW §3.1 (send and receive text); SOW A3; RA-03 |
 | FR-14 | SOW §3.1 input validation; RA-03 |
 | FR-15 | O2; RA-09 |
 | FR-16 | O2; RA-09 |
-| FR-17 | O4; SOW §3.1 Private messaging ("near-real-time delivery"); RA-06 |
+| FR-17 | O4; SOW §3.1 Private messaging ("delivery within 5 seconds"); RA-06 |
 | FR-18 | O4; SOW §3.1 Private messaging ("delivery on next login") |
 | FR-19 | O2; SOW §3.1 Private messaging ("history is viewable") |
 | FR-20 | O1; SOW §3.1 access control |
@@ -269,6 +277,7 @@ Writing precise requirements exposed these. Each is resolved here as shown, and 
 | FR-29 | RA-05; CF-02 |
 | FR-30 | O2, O3 (stored history cannot be reached without a conversation list) |
 | FR-31 | O4; SOW §3.1 persistent storage |
+| FR-32 | STK End users; ER §2.2 |
 | NFR-01 | O4; SOW A4; RA-06, RA-12 |
 | NFR-02 | O2; STK End users |
 | NFR-03 | SOW A4; RA-12; FR-10 |
@@ -279,6 +288,8 @@ Writing precise requirements exposed these. Each is resolved here as shown, and 
 | NFR-08 | STK End users |
 | NFR-09 | STK End users |
 | NFR-10 | SOW A2; RA-13 |
+| NFR-11 | O4; AN F-4 |
+| NFR-12 | STK End users; ER §2.1 |
 
 ### 7.2 SOW elements to requirements
 This table shows that the requirements cover the SOW; every FR and NFR also appears in the **AC** column of its table, so each is paired with an acceptance criterion.
@@ -288,31 +299,22 @@ This table shows that the requirements cover the SOW; every FR and NFR also appe
 | O1 Identity and secure access | FR-01 to FR-09, FR-20, FR-28; NFR-05, NFR-06 |
 | O2 Private messaging with history | FR-11 to FR-16, FR-19, FR-30; NFR-02 |
 | O3 Group conversation | FR-13, FR-21 to FR-30 |
-| O4 Prompt delivery, no lost messages | FR-17, FR-18, FR-24, FR-31; NFR-01 |
+| O4 Prompt delivery, no lost messages | FR-17, FR-18, FR-24, FR-31; NFR-01, NFR-11 |
 | O5 Delivered with evidence | Section 5 (acceptance criteria define the evidence) |
 | O6 Ambiguities surfaced | Section 6 |
 | Registration, login, logout; unique usernames | FR-01 to FR-04, FR-06 to FR-08 |
 | Salted password hashing | FR-05; NFR-05 |
 | Start a one-to-one conversation | FR-11, FR-12 |
 | Send and receive text; persistent, viewable history | FR-13 to FR-16, FR-19, FR-31 |
-| Near-real-time delivery; delivery on next login | FR-17, FR-18; NFR-01 |
+| Delivery within 5 seconds; delivery on next login | FR-17, FR-18; NFR-01 |
 | Create a group; creator becomes owner | FR-21, FR-22, FR-29 |
 | Members can leave | FR-27 |
 | Group messages visible to all members; persistent history | FR-23 to FR-25 |
-| User list/search by username | FR-10; NFR-03 |
+| Search for users by username prefix | FR-10; NFR-03 |
 | Client user interface | FR-30; NFR-08, NFR-10 |
 | Persistent storage | FR-31 |
 | Input validation and basic access control | FR-04, FR-09, FR-14, FR-20, FR-22, FR-28; NFR-07 |
+| Message rate limit | NFR-12 |
+| Registration notice | FR-32 |
+| Message not sent if it cannot be stored | NFR-11 |
 
-
-## 9. Required Revisions to the Statement of Work
-
-Per the assignment, the SOW should be revised so the two documents agree. Based on Section 7.3:
-
-1. **§3.1 Group messaging:** state that a group is created by naming it and selecting its members, and that membership changes only by leaving (CF-01).
-2. **§2 Stakeholders and §5.1 A6:** state that group ownership is recorded but grants no additional capabilities in this release (CF-02).
-3. **§7.1 criteria 3 and 6 and §3.1:** replace "about 5 seconds" and "near-real-time" with "within 5 seconds" (CF-03).
-4. **§7.1:** add an acceptance criterion for user search, and one for the group-member rules (CF-04, CF-01).
-5. **§3.1 Supporting functionality:** replace "User list/search" with "search by username prefix" (CF-04, DEC-09).
-6. **§5.1 A3:** state the 2000-character limit (CF-05).
-7. **§3.2:** add a line stating transport security (HTTPS/TLS) is not required for the demonstration, pending OQ-03 (CF-07).
