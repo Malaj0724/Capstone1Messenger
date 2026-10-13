@@ -1,0 +1,69 @@
+@startuml data-flow
+' Messenger - Level 1 Data Flow Diagram
+' Notation: rectangle = external entity, ellipse = process, cylinder = data store.
+' Requirement identifiers refer to docs/requirements.md.
+
+title Messenger - Level 1 Data Flow Diagram
+
+skinparam shadowing false
+skinparam defaultTextAlignment center
+skinparam ArrowFontSize 11
+skinparam nodesep 40
+skinparam ranksep 60
+
+rectangle "Visitor" as VIS #F2F2F2
+rectangle "Registered User\n(sender, recipient,\ngroup creator, member)" as USR #F2F2F2
+
+usecase "1.0\nManage Accounts\nand Sessions\n(FR-01 to FR-09)" as P1
+usecase "2.0\nFind Users\n(FR-10)" as P2
+usecase "3.0\nManage\nConversations\n(FR-11, 12, 21, 22,\n26, 27, 29, 30)" as P3
+usecase "4.0\nAccept and\nStore Messages\n(FR-13 to 15, 20,\n23, 28)" as P4
+usecase "5.0\nDeliver Messages\nand History\n(FR-16 to 19,\n24, 25)" as P5
+
+database "D1\nAccounts" as D1
+database "D2\nSessions" as D2
+database "D3\nConversations\nand Memberships" as D3
+database "D4\nMessages" as D4
+
+' --- Accounts and sessions (1.0) ---
+VIS --> P1 : registration details,\nlogin credentials
+P1 --> VIS : registration or login result,\nsession, rejection message
+USR --> P1 : logout request
+P1 --> D1 : new account\n(username, salted hash)
+D1 --> P1 : stored hash,\nusername lookup
+P1 --> D2 : new session,\nended session
+
+' --- Finding users (2.0) ---
+USR --> P2 : search text
+P2 --> USR : matching usernames
+D1 --> P2 : usernames
+D2 --> P2 : session check
+
+' --- Conversations (3.0) ---
+USR --> P3 : open-conversation request,\ngroup name and members,\nleave request, list request
+P3 --> USR : conversation list,\nmember list,\nresult or rejection
+D1 --> P3 : registered usernames
+D2 --> P3 : session check
+P3 --> D3 : new conversation,\nnew group and members,\nmember left
+D3 --> P3 : conversations,\nmemberships
+
+' --- Sending messages (4.0) ---
+USR --> P4 : message text,\ntarget conversation
+P4 --> USR : send confirmation\nor rejection message
+D2 --> P4 : session check
+D3 --> P4 : membership\n(authorization)
+P4 --> D4 : message\n(text, sender, time,\nconversation)
+
+' --- Delivery and history (5.0) ---
+USR --> P5 : open-conversation\nrequest
+P5 --> USR : message history,\nnew messages
+D2 --> P5 : session check
+D3 --> P5 : membership\n(authorization)
+D4 --> P5 : stored messages
+
+note bottom of D2
+  Every request from a Registered User to 2.0 - 5.0
+  carries a session that is checked against D2.
+end note
+
+@enduml

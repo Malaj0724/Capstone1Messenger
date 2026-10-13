@@ -1,0 +1,69 @@
+@startuml sequence
+' Messenger - Sequence diagram: send a message in a private conversation.
+' Requirement identifiers refer to docs/requirements.md.
+
+title Messenger - Send a Message in a Private Conversation
+
+autonumber
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam maxMessageSize 220
+
+actor "Sender" as S
+participant "Sender's Client" as SC
+participant "Server" as SV
+database "Data Store" as DB
+participant "Recipient's Client" as RC
+actor "Recipient" as R
+
+S -> SC : type message and submit
+SC -> SV : send(conversation, text, session)
+activate SV
+
+SV -> DB : look up session and\nconversation membership
+DB --> SV : session state, participants
+
+alt session not valid (FR-09)
+    SV --> SC : rejected: not logged in
+    SC --> S : show "please log in"
+else sender is not a participant (FR-20)
+    SV --> SC : rejected: not permitted
+    SC --> S : show error message
+else text empty or longer than 2000 characters (FR-14, NFR-07)
+    SV --> SC : rejected: names the violated rule
+    SC --> S : show error message
+else request is valid (FR-13)
+    SV -> SV : record sender and receipt time (FR-15)
+    SV -> DB : store message
+    alt storage fails (NFR-11)
+        DB --> SV : error
+        SV --> SC : error: message not sent
+        SC --> S : show "message not sent"
+        note right of SV
+            Nothing is delivered to the
+            recipient and nothing is shown
+            as sent.
+        end note
+    else message stored
+        DB --> SV : stored
+        SV --> SC : confirmation (sender, time)
+        SC --> S : show message in conversation
+        alt recipient is online (FR-17, NFR-01)
+            SV -> RC : new message (sender, text, time)
+            note right of SV
+                Push or polling is left to design
+                (RA-06). Must arrive within 5 seconds.
+            end note
+            RC --> R : show message without refresh
+        else recipient is offline (FR-18)
+            note over SV, DB
+                Message stays stored. The recipient
+                sees it in the conversation history
+                at next login (FR-19).
+            end note
+        end
+    end
+end
+deactivate SV
+
+@enduml
